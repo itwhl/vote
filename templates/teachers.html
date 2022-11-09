@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>老师信息</title>
+    <style>
+        #container {
+            width: 80%;
+            margin: 10px auto;
+        }
+        .teacher {
+            width: 100%;
+            margin: 0 auto;
+            padding: 10px 0;
+            border-bottom: 1px dashed gray;
+            overflow: auto;
+        }
+        .teacher div {
+            float: left;
+        }
+        .photo {
+            height: 140px;
+            border-radius: 75px;
+            overflow: hidden;
+            margin-left: 20px;
+        }
+        .info {
+            width: 75%;
+            margin-left: 30px;
+        }
+        .info div {
+            clear: both;
+            margin: 5px 10px;
+        }
+        .info span {
+            margin-right: 25px;
+        }
+        .info a {
+            text-decoration: none;
+            color: darkcyan;
+        }
+        .user {
+            float: right;
+            margin: 10px 10px;
+        }
+        .user+h1 {
+            clear: both;
+        }
+        #photo {
+            border-radius: 32px 32px 32px 32px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>{{ teacher.name}}</h1>
+        <hr>
+        {% for teacher in teachers %}
+        <div class="teacher">
+            <div class="info">
+                <div>
+                    <span><strong>姓名: {{ teacher.name }}</strong></span>
+                    <span>性别：{{ teacher.sex }}</span>
+                </div>
+                <div class="intro">
+                    {{ teacher.intro }}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <a href="/">返回首页</a>
+</body>
+</html>
