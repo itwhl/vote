@@ -37,10 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'debug_toolbar',  # 开发测试性能
     'polls',
 ]
 
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',  # 开发测试性能
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -49,6 +51,16 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# 开发测试性能
+DEBUG_TOOLBAR_CONFIG = {
+    # 引入jQuery库
+    'JQUERY_URL': 'http://cdn.bootcss.com/jquery/3.3.1/jquery.min.js',
+    # 工具栏是否折叠
+    'SHOW_COLLAPSED': True,
+    # 是否显示工具栏
+    'SHOW_TOOLBAR_CALLBACK': lambda x: True,
+}
 
 ROOT_URLCONF = 'vote.urls'
 
@@ -126,3 +138,34 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),]
+
+# 接入redis缓存服务
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django_redis.cache.RedisCache',
+#         # 服务器的地址
+#         'LOCATION': [
+#             'redis://rm-bp172xk000fzkol57to.mysql.rds.aliyuncs.com/0',
+#         ],
+#         # 缓存中键的前缀(解决命名冲突的问题)
+#         'KEY_PREFIX': 'vote',
+#         # 缓存服务的配置参数
+#         'OPTIONS': {
+#             'CLIENT_CLASS':'django.redis.client.DefaultClient',
+#             # 配置连接池(减少频繁的创建和释放Redis连接造成的网络开销)
+#             'CONNECTION_POOL_KWARGS': {
+#                 'max_connections': 512,
+#             },
+#             'PASSWORD':'Ab123456-',
+#         }
+#     },
+# }
+
+# 使用缓存保存用户跟踪的session对象
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+# 指定使用那一组缓存服务来保存session对象
+SESSION_CACHE_ALIAS = 'default'
+# 指定session对象的过期时间(Redis键过期时间)
+SESSION_COOKIE_AGE = 1209600
+# 关闭浏览器窗口session自动过期(cookie自动消失)
+# SESSION_EXPIRE_AT_BROWSER_CLOSE = True

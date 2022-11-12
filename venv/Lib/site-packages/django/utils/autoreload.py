@@ -2,7 +2,6 @@ import functools
 import itertools
 import logging
 import os
-import pathlib
 import signal
 import subprocess
 import sys
@@ -15,6 +14,7 @@ from pathlib import Path
 from types import ModuleType
 from zipimport import zipimporter
 
+import django
 from django.apps import apps
 from django.core.signals import request_finished
 from django.dispatch import Signal
@@ -22,7 +22,7 @@ from django.utils.functional import cached_property
 from django.utils.version import get_version_tuple
 
 autoreload_started = Signal()
-file_changed = Signal(providing_args=['file_path', 'kind'])
+file_changed = Signal()
 
 DJANGO_AUTORELOAD_ENV = 'RUN_MAIN'
 
@@ -44,6 +44,16 @@ try:
     import pywatchman
 except ImportError:
     pywatchman = None
+
+
+def is_django_module(module):
+    """Return True if the given module is nested under Django."""
+    return module.__name__.startswith('django.')
+
+
+def is_django_path(path):
+    """Return True if the given file path is nested under Django."""
+    return Path(django.__file__).parent in Path(path).parents
 
 
 def check_errors(fn):
@@ -78,19 +88,22 @@ def raise_last_exception():
 
 
 def ensure_echo_on():
-    if termios:
-        fd = sys.stdin
-        if fd.isatty():
-            attr_list = termios.tcgetattr(fd)
-            if not attr_list[3] & termios.ECHO:
-                attr_list[3] |= termios.ECHO
-                if hasattr(signal, 'SIGTTOU'):
-                    old_handler = signal.signal(signal.SIGTTOU, signal.SIG_IGN)
-                else:
-                    old_handler = None
-                termios.tcsetattr(fd, termios.TCSANOW, attr_list)
-                if old_handler is not None:
-                    signal.signal(signal.SIGTTOU, old_handler)
+    """
+    Ensure that echo mode is enabled. Some tools such as PDB disable
+    it which causes usability issues after reload.
+    """
+    if not termios or not sys.stdin.isatty():
+        return
+    attr_list = termios.tcgetattr(sys.stdin)
+    if not attr_list[3] & termios.ECHO:
+        attr_list[3] |= termios.ECHO
+        if hasattr(signal, 'SIGTTOU'):
+            old_handler = signal.signal(signal.SIGTTOU, signal.SIG_IGN)
+        else:
+            old_handler = None
+        termios.tcsetattr(sys.stdin, termios.TCSANOW, attr_list)
+        if old_handler is not None:
+            signal.signal(signal.SIGTTOU, old_handler)
 
 
 def iter_all_python_module_files():
@@ -98,8 +111,8 @@ def iter_all_python_module_files():
     # modules based on the module name and pass it to iter_modules_and_files().
     # This ensures cached results are returned in the usual case that modules
     # aren't loaded on the fly.
-    modules_view = sorted(list(sys.modules.items()), key=lambda i: i[0])
-    modules = tuple(m[1] for m in modules_view if not isinstance(m[1], weakref.ProxyTypes))
+    keys = sorted(sys.modules)
+    modules = tuple(m for m in map(sys.modules.__getitem__, keys) if not isinstance(m, weakref.ProxyTypes))
     return iter_modules_and_files(modules, frozenset(_error_files))
 
 
@@ -134,16 +147,18 @@ def iter_modules_and_files(modules, extra_files):
     for filename in itertools.chain(sys_file_paths, extra_files):
         if not filename:
             continue
-        path = pathlib.Path(filename)
+        path = Path(filename)
         try:
             if not path.exists():
                 # The module could have been removed, don't fail loudly if this
                 # is the case.
                 continue
-            results.add(path.resolve().absolute())
         except ValueError as e:
             # Network filesystems may return null bytes in file paths.
-            logger.debug('"%s" raised when resolving path: "%s"' % (str(e), path))
+            logger.debug('"%s" raised when resolving path: "%s"', e, path)
+            continue
+        resolved_path = path.resolve().absolute()
+        results.add(resolved_path)
     return frozenset(results)
 
 
@@ -187,12 +202,12 @@ def sys_path_directories():
         path = Path(path)
         if not path.exists():
             continue
-        path = path.resolve().absolute()
+        resolved_path = path.resolve().absolute()
         # If the path is a file (like a zip file), watch the parent directory.
-        if path.is_file():
-            yield path.parent
+        if resolved_path.is_file():
+            yield resolved_path.parent
         else:
-            yield path
+            yield resolved_path
 
 
 def get_child_arguments():
@@ -201,13 +216,32 @@ def get_child_arguments():
     executable is reported to not have the .exe extension which can cause bugs
     on reloading.
     """
-    import django.__main__
+    import __main__
+    py_script = Path(sys.argv[0])
 
     args = [sys.executable] + ['-W%s' % o for o in sys.warnoptions]
-    if sys.argv[0] == django.__main__.__file__:
-        # The server was started with `python -m django runserver`.
-        args += ['-m', 'django']
+    # __spec__ is set when the server was started with the `-m` option,
+    # see https://docs.python.org/3/reference/import.html#main-spec
+    # __spec__ may not exist, e.g. when running in a Conda env.
+    if getattr(__main__, '__spec__', None) is not None and __main__.__spec__.parent:
+        args += ['-m', __main__.__spec__.parent]
         args += sys.argv[1:]
+    elif not py_script.exists():
+        # sys.argv[0] may not exist for several reasons on Windows.
+        # It may exist with a .exe extension or have a -script.py suffix.
+        exe_entrypoint = py_script.with_suffix('.exe')
+        if exe_entrypoint.exists():
+            # Should be executed directly, ignoring sys.executable.
+            # TODO: Remove str() when dropping support for PY37.
+            # args parameter accepts path-like on Windows from Python 3.8.
+            return [str(exe_entrypoint), *sys.argv[1:]]
+        script_entrypoint = py_script.with_name('%s-script.py' % py_script.name)
+        if script_entrypoint.exists():
+            # Should be executed as usual.
+            # TODO: Remove str() when dropping support for PY37.
+            # args parameter accepts path-like on Windows from Python 3.8.
+            return [*args, str(script_entrypoint), *sys.argv[1:]]
+        raise RuntimeError('Script %s does not exist.' % py_script)
     else:
         args += sys.argv
     return args
@@ -222,9 +256,9 @@ def restart_with_reloader():
     new_environ = {**os.environ, DJANGO_AUTORELOAD_ENV: 'true'}
     args = get_child_arguments()
     while True:
-        exit_code = subprocess.call(args, env=new_environ, close_fds=False)
-        if exit_code != 3:
-            return exit_code
+        p = subprocess.run(args, env=new_environ, close_fds=False)
+        if p.returncode != 3:
+            return p.returncode
 
 
 class BaseReloader:
@@ -246,13 +280,6 @@ class BaseReloader:
             return
         logger.debug('Watching dir %s with glob %s.', path, glob)
         self.directory_globs[path].add(glob)
-
-    def watch_file(self, path):
-        path = Path(path)
-        if not path.is_absolute():
-            raise ValueError('%s must be absolute.' % path)
-        logger.debug('Watching file %s.', path)
-        self.extra_files.add(path)
 
     def watched_files(self, include_globs=True):
         """
@@ -288,6 +315,7 @@ class BaseReloader:
         logger.debug('Waiting for apps ready_event.')
         self.wait_for_apps_ready(apps, django_main_thread)
         from django.urls import get_resolver
+
         # Prevent a race condition where URL modules aren't loaded when the
         # reloader starts by accessing the urlconf_module property.
         try:
@@ -418,8 +446,15 @@ class WatchmanReloader(BaseReloader):
 
     def _subscribe(self, directory, name, expression):
         root, rel_path = self._watch_root(directory)
+        # Only receive notifications of files changing, filtering out other types
+        # like special files: https://facebook.github.io/watchman/docs/type
+        only_files_expression = [
+            'allof',
+            ['anyof', ['type', 'f'], ['type', 'l']],
+            expression
+        ]
         query = {
-            'expression': expression,
+            'expression': only_files_expression,
             'fields': ['name'],
             'since': self._get_clock(root),
             'dedup_results': True,
@@ -524,12 +559,17 @@ class WatchmanReloader(BaseReloader):
                 self.processed_request.clear()
             try:
                 self.client.receive()
+            except pywatchman.SocketTimeout:
+                pass
             except pywatchman.WatchmanError as ex:
+                logger.debug('Watchman error: %s, checking server status.', ex)
                 self.check_server_status(ex)
             else:
                 for sub in list(self.client.subs.keys()):
                     self._check_subscription(sub)
             yield
+            # Protect against busy loops.
+            time.sleep(0.1)
 
     def stop(self):
         self.client.close()
@@ -575,7 +615,7 @@ def start_django(reloader, main_func, *args, **kwargs):
 
     main_func = check_errors(main_func)
     django_main_thread = threading.Thread(target=main_func, args=args, kwargs=kwargs, name='django-main-thread')
-    django_main_thread.setDaemon(True)
+    django_main_thread.daemon = True
     django_main_thread.start()
 
     while not reloader.should_stop:
