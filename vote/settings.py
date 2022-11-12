@@ -169,3 +169,25 @@ SESSION_CACHE_ALIAS = 'default'
 SESSION_COOKIE_AGE = 1209600
 # 关闭浏览器窗口session自动过期(cookie自动消失)
 # SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+
+# 日志级别：DEBUG < INFO < WARNING < ERROR < CRITICAL 日志级别越低，日志输出越详细
+# 可以通过官方文档搜索logging查看日志配置
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    # 日志处理器
+    'handlers': {
+        # 配置通过控制台输出日志（StreamHandler）
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    # 日志记录器,django.db为查看数据库日志
+    'loggers': {
+        'django.db': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+    },
+}

@@ -175,6 +175,11 @@ def export_excel(request: HttpRequest) -> HttpResponse:
     titles = ('姓名', '所属学科')
     for col, title in enumerate(titles):  # enumerate可以拿到下标和元素的二元组
         sheet.write(0, col,title)
+    # select_related()查询teacher数据时顺便查询subject数据，避免sql重复
+    queryset = Teacher.objects.all().only('name', 'subject__name').select_related('subject').order_by('-subject__name')
+    for row, teacher in enumerate(queryset):
+        sheet.write(row + 1, 0, teacher.name)
+        sheet.write(row + 1, 1, teacher.subject.name)
     # 将工作簿的内容写入BytesIo中
     buffer = io.BytesIO()
     wb.save(buffer)
@@ -185,5 +190,5 @@ def export_excel(request: HttpRequest) -> HttpResponse:
     # 使用urllib.parse模块的quote函数将中文处理成百分号编码
     filename = quote('投票数据统计。xls')
     # inline - 表示浏览器直接内联打开文件；attachment - 表示浏览器以附件的方式下载文件
-    resp['Content-Disposition'] = f'attachment；filename="{filename}"'
+    resp['Content-Disposition'] = f'attachment；filename*=utf-8\'\'{filename}'
     return resp
