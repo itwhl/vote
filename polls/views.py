@@ -177,9 +177,13 @@ def export_excel(request: HttpRequest) -> HttpResponse:
         sheet.write(0, col,title)
     # select_related()查询teacher数据时顺便查询subject数据，避免sql重复
     queryset = Teacher.objects.all().only('name', 'subject__name').select_related('subject').order_by('-subject__name')
+    props = ('name','subject')
     for row, teacher in enumerate(queryset):
-        sheet.write(row + 1, 0, teacher.name)
-        sheet.write(row + 1, 1, teacher.subject.name)
+        for col, prop in enumerate(props):
+            value = getattr(teacher, prop, '')
+            if not isinstance(value, (int, float, str)):
+                value = str(value)
+            sheet.write(row + 1, 0, teacher.name, value)
     # 将工作簿的内容写入BytesIo中
     buffer = io.BytesIO()
     wb.save(buffer)
