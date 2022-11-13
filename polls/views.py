@@ -180,10 +180,9 @@ def export_excel(request: HttpRequest) -> HttpResponse:
     props = ('name','subject')
     for row, teacher in enumerate(queryset):
         for col, prop in enumerate(props):
-            value = getattr(teacher, prop, '')
-            if not isinstance(value, (int, float, str)):
-                value = str(value)
-            sheet.write(row + 1, 0, teacher.name, value)
+            # 通过getattr函数动态获取指定对象的属性
+            value = str(getattr(teacher, prop, ''))
+            sheet.write(row + 1, col, value)
     # 将工作簿的内容写入BytesIo中
     buffer = io.BytesIO()
     wb.save(buffer)

@@ -42,9 +42,11 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'debug_toolbar.middleware.DebugToolbarMiddleware',  # 开发测试性能
+    # 'debug_toolbar.middleware.DebugToolbarMiddleware',  # 开发测试性能
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    #添加自定义中间件(要写在SessionMiddleware配置下面)
+    'polls.middlewares.check_login_middleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -52,15 +54,15 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# 开发测试性能
-DEBUG_TOOLBAR_CONFIG = {
-    # 引入jQuery库
-    'JQUERY_URL': 'http://cdn.bootcss.com/jquery/3.3.1/jquery.min.js',
-    # 工具栏是否折叠
-    'SHOW_COLLAPSED': True,
-    # 是否显示工具栏
-    'SHOW_TOOLBAR_CALLBACK': lambda x: True,
-}
+# # 开发测试性能
+# DEBUG_TOOLBAR_CONFIG = {
+#     # 引入jQuery库
+#     'JQUERY_URL': 'http://cdn.bootcss.com/jquery/3.3.1/jquery.min.js',
+#     # 工具栏是否折叠
+#     'SHOW_COLLAPSED': True,
+#     # 是否显示工具栏
+#     'SHOW_TOOLBAR_CALLBACK': lambda x: True,
+# }
 
 ROOT_URLCONF = 'vote.urls'
 
@@ -190,4 +192,13 @@ LOGGING = {
             'level': 'DEBUG',
         },
     },
+}
+
+
+# 自定义的路径名
+LOGIN_REDIRECT_URLS = {
+    '/praise/',
+    '/criticize/',
+    '/data/',
+    '/export/',
 }
