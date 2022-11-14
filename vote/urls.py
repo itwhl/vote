@@ -18,12 +18,13 @@ from django.contrib import admin
 from django.urls import path, include
 
 from polls.views import show_subjects, show_teachers, praise_or_criticize, login, register, logout, send_mobile_code, \
-    get_stat_date, export_excel
+    get_stat_date, export_excel, show_index
 
 urlpatterns = [
+    path('',show_index),
     path('admin/', admin.site.urls),
-    path('', show_subjects),
-    path('teachers/', show_teachers),
+    path('api/subjects/', show_subjects),
+    path('api/teachers/', show_teachers),
     path('parise/', praise_or_criticize),
     path('criticize/', praise_or_criticize),
     path('login/', login),

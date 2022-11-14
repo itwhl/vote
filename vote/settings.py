@@ -45,7 +45,7 @@ MIDDLEWARE = [
     # 'debug_toolbar.middleware.DebugToolbarMiddleware',  # 开发测试性能
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    #添加自定义中间件(要写在SessionMiddleware配置下面)
+    #添加自定义中间件(注意要写在SessionMiddleware配置下面)
     'polls.middlewares.check_login_middleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -69,7 +69,7 @@ ROOT_URLCONF = 'vote.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates'),],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -173,26 +173,26 @@ SESSION_COOKIE_AGE = 1209600
 # SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 
-# 日志级别：DEBUG < INFO < WARNING < ERROR < CRITICAL 日志级别越低，日志输出越详细
-# 可以通过官方文档搜索logging查看日志配置
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    # 日志处理器
-    'handlers': {
-        # 配置通过控制台输出日志（StreamHandler）
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    # 日志记录器,django.db为查看数据库日志
-    'loggers': {
-        'django.db': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-        },
-    },
-}
+# # 日志级别：DEBUG < INFO < WARNING < ERROR < CRITICAL 日志级别越低，日志输出越详细
+# # 可以通过官方文档搜索logging查看日志配置
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     # 日志处理器
+#     'handlers': {
+#         # 配置通过控制台输出日志（StreamHandler）
+#         'console': {
+#             'class': 'logging.StreamHandler',
+#         },
+#     },
+#     # 日志记录器,django.db为查看数据库日志
+#     'loggers': {
+#         'django.db': {
+#             'handlers': ['console'],
+#             'level': 'DEBUG',
+#         },
+#     },
+# }
 
 
 # 自定义的路径名

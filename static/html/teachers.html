@@ -53,22 +53,28 @@
 </head>
 <body>
     <div id="container">
-        <h1>{{ teacher.name}}</h1>
+        <h1>Python全栈+人工智能学科的老师信息</h1>
         <hr>
-        {% for teacher in teachers %}
         <div class="teacher">
+            <div class="photo">
+                <img src="images/luohao.png" height="140" alt="">
+            </div>
             <div class="info">
                 <div>
-                    <span><strong>姓名: {{ teacher.name }}</strong></span>
-                    <span>性别：{{ teacher.sex }}</span>
+                    <span><strong>姓名：骆昊</strong></span>
+                    <span>性别：男</span>
+                    <span>出生日期：1980年11月28日</span>
                 </div>
                 <div class="intro">
                     {{ teacher.intro }}
                 </div>
+                <div class="comment">
+                    <a href="">好评</a>&nbsp;&nbsp;(<strong>100</strong>)
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <a href="">差评</a>&nbsp;&nbsp;(<strong>50</strong>)
+                </div>
             </div>
         </div>
-        {% endfor %}
     </div>
-    <a href="/">返回首页</a>
 </body>
 </html>

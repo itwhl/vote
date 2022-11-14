@@ -15,18 +15,48 @@ from polls.models import Teacher, Subject, User
 from polls.utils import to_md5_hex, random_captcha_code, send_message_by_sms, random_mobile_code, check_username, check_password, check_tel
 
 
+def show_index(request):
+    # 显示首页（开发测试使用）
+    return redirect('/static/html/subjects.html')
+
+
 def show_subjects(request: HttpRequest) -> HttpResponse:
+    # 显示学科
     queryset = Subject.objects.all()
-    return render(request, 'subjects.html', {'subjects': queryset})
+    subjects = []
+    for subject in queryset:
+        data = {
+            'no':subject.no,
+            'name':subject.name,
+            'intro':subject.intro,
+            'is_hot':subject.is_hot
+        }
+        subjects.append(data)
+    return JsonResponse({'subjects': subjects})
 
 
 def show_teachers(request: HttpRequest) -> HttpResponse:
+    # 显示老师
+    subject_dict, teachers_list = {}, []
     try:
         sno = int(request.GET['sno'])  # 通过request对象的GET属性可以获取来自于URL的参数（是个字典）
-        queryset = Teacher.objects.filter(subject__no=sno )  # 筛选数据
-        return render(request, 'teachers.html', {'teachers': queryset})
+        subject = Subject.objects.only('name').get(no=sno)
+        subject_dict = {
+            'no': subject.no,
+            'name': subject.name
+        }
+        queryset = Teacher.objects.filter(subject__no=sno ).defer('subject')
+        for teacher in queryset:
+            teachers_list.append({
+                'no': teacher.no,
+                'name': teacher.name,
+                'sex': teacher.sex,
+                'sno': teacher.sno,
+                'intro': teacher.intro
+            })
     except(KeyError, ValueError, Teacher.DoesNotExist):
         return redirect('/')  # 重定向函数,返回首页
+    return JsonResponse({'subjects': subject_dict,'teachers': teachers_list})
 
 
 def praise_or_criticize(request: HttpRequest) -> HttpResponse:
@@ -83,7 +113,6 @@ def login(request: HttpRequest) -> HttpResponse:
                 hint = '请输入有效的用户名和密码'
         else:
             hint = '请输入正确的验证码'
-    render(request, 'login.html', {'hint': hint})
 
 
 def register(request: HttpRequest) -> HttpResponse:
@@ -117,7 +146,6 @@ def register(request: HttpRequest) -> HttpResponse:
                 hint = '请输入正确的验证码'
         else:
             hint = '请勾选同意网站用户协议及隐私政策'
-    render(request, 'register.html', {'hint': hint})
 
 
 def logout(request: HttpRequest) -> HttpResponse:

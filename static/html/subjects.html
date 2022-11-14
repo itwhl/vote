@@ -34,23 +34,33 @@
             <a href="login.html">用户登录</a>
             <a href="register.html">快速注册</a>
         </div>
-        <h1>北京某学校所有学科</h1>
+        <h1>某学校所有学科</h1>
         <hr>
         <div id="main">
-            {% for subject in subjects %}
-            <dl>
+            <dl v-for="subject in subjects">
                 <dt>
-                    <a href="/teachers/?sno={{ subject.no }}">{{ subject.name }}</a>
-                    {% if subject.is_hot %}
-                    <img src="/static/images/hot-icon-small.png">
-                    {% endif %}
+                    <a :href="'/teachers/?sno=' + subject.no ">{{ subject.name }}</a>
+                    <img v-if="subject.is_hot" src="/static/images/hot-icon-small.png">
                 </dt>
                 <dd>
                     {{ subject.intro }}
                 </dd>
             </dl>
-            {% endfor %}
         </div>
     </div>
+    <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.min.js"></script>
+    <script>
+        let app = new Vue({
+            el: '#main',
+            data: {
+                subjects: []
+            },
+            created: function () {
+                fetch('/api/subjects/').then(resp => resp.json()).then(json =>{
+                    this.subjects = json.subjects
+                })
+            }
+        })
+    </script>
 </body>
 </html>
