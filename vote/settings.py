@@ -42,7 +42,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'debug_toolbar.middleware.DebugToolbarMiddleware',  # 开发测试性能
+    # 'debug_toolbar.middleware.DebugToolbarMiddleware',  # 开发测试性能
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     #添加自定义中间件(注意要写在SessionMiddleware配置下面)

@@ -25,13 +25,12 @@ def show_subjects(request: HttpRequest) -> HttpResponse:
     queryset = Subject.objects.all()
     subjects = []
     for subject in queryset:
-        data = {
+        subjects.append( {
             'no':subject.no,
             'name':subject.name,
             'intro':subject.intro,
             'is_hot':subject.is_hot
-        }
-        subjects.append(data)
+        })
     return JsonResponse({'subjects': subjects})
 
 
@@ -45,7 +44,7 @@ def show_teachers(request: HttpRequest) -> HttpResponse:
             'no': subject.no,
             'name': subject.name
         }
-        queryset = Teacher.objects.filter(subject__no=sno ).defer('subject')
+        queryset = Teacher.objects.filter(sno__no=sno).defer('subject')
         for teacher in queryset:
             teachers_list.append({
                 'no': teacher.no,
@@ -55,8 +54,8 @@ def show_teachers(request: HttpRequest) -> HttpResponse:
                 'intro': teacher.intro
             })
     except(KeyError, ValueError, Teacher.DoesNotExist):
-        return redirect('/')  # 重定向函数,返回首页
-    return JsonResponse({'subjects': subject_dict,'teachers': teachers_list})
+        pass
+    return JsonResponse({'subject': subject_dict, 'teachers': teachers_list})
 
 
 def praise_or_criticize(request: HttpRequest) -> HttpResponse:
