@@ -53,17 +53,14 @@
 </head>
 <body>
     <div id="container">
-        <h1>Python全栈+人工智能学科的老师信息</h1>
+        <h1>{{ subject.name }}学科的老师信息</h1>
         <hr>
+        <h2 v-if="loaded && teachers.length == 0">暂无改学科老师信息</h2>
         <div class="teacher">
-            <div class="photo">
-                <img src="images/luohao.png" height="140" alt="">
-            </div>
             <div class="info">
                 <div>
-                    <span><strong>姓名：骆昊</strong></span>
-                    <span>性别：男</span>
-                    <span>出生日期：1980年11月28日</span>
+                    <span><strong>姓名：{{ teacher.name }}</strong></span>
+                    <span>性别：{{ teacher.sex }}</span>
                 </div>
                 <div class="intro">
                     {{ teacher.intro }}
@@ -75,6 +72,21 @@
                 </div>
             </div>
         </div>
+        <a href="/static/html/subjects.html">返回首页</a>
     </div>
+    <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.min.js"></script>
+    <script>
+        let app = new Vue({
+            el: '#container',
+            data: {
+                subjects: []
+            },
+            created: function () {
+                fetch('/api/subjects/').then(resp => resp.json()).then(json =>{
+                    this.subjects = json.subjects
+                })
+            }
+        })
+    </script>
 </body>
 </html>

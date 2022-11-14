@@ -30,11 +30,10 @@ class Teacher(models.Model):
     no = models.AutoField(primary_key=True)
     name = models.CharField(max_length=20)
     sex = models.BooleanField(choices=SEX_OPTIONS,default=True)
-    sno = models.IntegerField()  # This field type is a guess.
     intro = models.CharField(max_length=1000)
     good_count = models.IntegerField(default=0, verbose_name='好评数')
     bad_count = models.IntegerField(default=0, verbose_name='差评数')
-    # subject = models.ForeignKey(to=Subject, on_delete=models.DO_NOTHING, db_column='sno', verbose_name='所属学科')
+    sno = models.ForeignKey(to=Subject, on_delete=models.DO_NOTHING, verbose_name='所属学科')
 
 
     class Meta:
