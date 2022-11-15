@@ -44,7 +44,7 @@ def show_teachers(request: HttpRequest) -> HttpResponse:
             'no': subject.no,
             'name': subject.name
         }
-        queryset = Teacher.objects.filter(sno__no=sno).defer('subject')
+        queryset = Teacher.objects.filter(subject__no=sno).defer('subject')
         for teacher in queryset:
             teachers_list.append({
                 'no': teacher.no,

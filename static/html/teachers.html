@@ -56,37 +56,63 @@
         <h1>{{ subject.name }}学科的老师信息</h1>
         <hr>
         <h2 v-if="loaded && teachers.length == 0">暂无改学科老师信息</h2>
-        <div class="teacher">
+        <div class="teacher" v_for="teacher in teachers">
             <div class="info">
                 <div>
                     <span><strong>姓名：{{ teacher.name }}</strong></span>
-                    <span>性别：{{ teacher.sex }}</span>
+                    <span>性别：{{ teacher.sex | maleOrFemale}}</span>
                 </div>
                 <div class="intro">
                     {{ teacher.intro }}
                 </div>
                 <div class="comment">
-                    <a href="">好评</a>&nbsp;&nbsp;(<strong>100</strong>)
+                    <a hrer="" @click.prevent="vote(teacher, true)">好评</a>&nbsp;&nbsp;(<strong>100</strong>)
                     &nbsp;&nbsp;&nbsp;&nbsp;
-                    <a href="">差评</a>&nbsp;&nbsp;(<strong>50</strong>)
+                    <a hrer="" @click.prevent="vote(teacher, false)">差评</a>&nbsp;&nbsp;(<strong>50</strong>)
                 </div>
             </div>
         </div>
         <a href="/static/html/subjects.html">返回首页</a>
     </div>
-{#    <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.min.js"></script>#}
-{#    <script>#}
-{#        let app = new Vue({#}
-{#            el: '#container',#}
-{#            data: {#}
-{#                subjects: []#}
-{#            },#}
-{#            created: function () {#}
-{#                fetch('/api/subjects/').then(resp => resp.json()).then(json =>{#}
-{#                    this.subjects = json.subjects#}
-{#                })#}
-{#            }#}
-{#        })#}
-{#    </script>#}
+    <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.min.js"></script>
+    <script>
+        let app = new Vue({
+            el: '#container',
+            data: {
+                subjects: {},
+                teachers: [],
+                loaded: false
+            },
+            filters: {
+                maleOrFemale(sex){
+                    return sex? '男' : '女'
+                }
+            },
+            methods:{
+                vote(teacher, flag){
+                    let url = flag? '/praise/' : '/criticize/'
+                    url += '?tno' + teacher.no
+                    fetch(url).then(resp => resp.json()).then(json =>{
+                        if (json.code === 10000) {
+                          if (flag) {
+                              teacher.good_count = json.count
+                          } else {
+                              teacher.bad_count = json.count
+                          }
+                        } else {
+                            alert(json.message)
+                        }
+                    })
+                }
+            },
+            created: function () {
+                fetch('/api/teachers/' + location.search).then(resp => resp.json()).then(json =>{
+                    this.loaded = true
+                    this.subjects = json.subjects
+                    this.teachers = json.teachers
+                })
+            }
+        })
+    </script>
 </body>
 </html>

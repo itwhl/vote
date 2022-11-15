@@ -1,20 +1,19 @@
-# 将模型注册到Django自带的管理平台
-
 from django.contrib import admin
 
 from polls.models import Subject, Teacher
 
 
-class SubjectModeAdmin(admin.ModelAdmin):
-    list_display = ('no', 'name', 'intro')
-    ordering = ('no',)
-
-
-class TeacherModeAdmin(admin.ModelAdmin):
-    list_display = ('no', 'name', 'sno', 'intro')
+class SubjectModelAdmin(admin.ModelAdmin):
+    list_display = ('no', 'name', 'intro', 'is_hot')
+    search_fields = ('name', )
     ordering = ('no', )
 
 
-admin.site.register(Subject, SubjectModeAdmin)
-admin.site.register(Teacher, TeacherModeAdmin)
+class TeacherModelAdmin(admin.ModelAdmin):
+    list_display = ('no', 'name', 'sex', 'good_count', 'bad_count', 'subject')
+    search_fields = ('name', )
+    ordering = ('no', )
 
+
+admin.site.register(Subject, SubjectModelAdmin)
+admin.site.register(Teacher, TeacherModelAdmin)

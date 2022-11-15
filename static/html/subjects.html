@@ -39,7 +39,7 @@
         <div id="main">
             <dl v-for="subject in subjects">
                 <dt>
-                    <a :href="'/teachers/?sno=' + subject.no  ">{{ subject.name }}</a>
+                    <a :href="'/teachers/?sno=' + subject.no ">{{ subject.name }}</a>
                     <img v-if="subject.is_hot" src="/static/images/hot-icon-small.png">
                 </dt>
                 <dd>
