@@ -26,16 +26,16 @@ def show_subjects(request: HttpRequest) -> HttpResponse:
     subjects = []
     for subject in queryset:
         subjects.append( {
-            'no':subject.no,
-            'name':subject.name,
-            'intro':subject.intro,
-            'is_hot':subject.is_hot
+            'no': subject.no,
+            'name': subject.name,
+            'intro': subject.intro,
+            'is_hot': subject.is_hot
         })
     return JsonResponse({'subjects': subjects})
 
 
 def show_teachers(request: HttpRequest) -> HttpResponse:
-    # 显示老师
+    # 获取指定学科老师数据
     subject_dict, teachers_list = {}, []
     try:
         sno = int(request.GET['sno'])  # 通过request对象的GET属性可以获取来自于URL的参数（是个字典）
@@ -50,8 +50,9 @@ def show_teachers(request: HttpRequest) -> HttpResponse:
                 'no': teacher.no,
                 'name': teacher.name,
                 'sex': teacher.sex,
-                'sno': teacher.sno,
                 'intro': teacher.intro,
+                'good_count': teacher.good_count,
+                'bad_count': teacher.bad_count,
             })
     except(KeyError, ValueError, Teacher.DoesNotExist):
         pass
@@ -222,3 +223,6 @@ def export_excel(request: HttpRequest) -> HttpResponse:
     # inline - 表示浏览器直接内联打开文件；attachment - 表示浏览器以附件的方式下载文件
     resp['Content-Disposition'] = f'attachment；filename*=utf-8\'\'{filename}'
     return resp
+
+
+
