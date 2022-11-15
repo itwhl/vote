@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'debug_toolbar',  # 开发测试性能
+    # 'debug_toolbar',  # 开发测试性能
     'polls',
 ]
 

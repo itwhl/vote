@@ -20,7 +20,7 @@ from polls.views import show_subjects, show_teachers, praise_or_criticize, login
     get_stat_date, export_excel, show_index
 
 urlpatterns = [
-    path('',show_index),
+    path('', show_index),
     path('admin/', admin.site.urls),
     path('api/subjects/', show_subjects),
     path('api/teachers/', show_teachers),

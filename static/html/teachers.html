@@ -74,19 +74,19 @@
         </div>
         <a href="/static/html/subjects.html">返回首页</a>
     </div>
-    <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.min.js"></script>
-    <script>
-        let app = new Vue({
-            el: '#container',
-            data: {
-                subjects: []
-            },
-            created: function () {
-                fetch('/api/subjects/').then(resp => resp.json()).then(json =>{
-                    this.subjects = json.subjects
-                })
-            }
-        })
-    </script>
+{#    <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.min.js"></script>#}
+{#    <script>#}
+{#        let app = new Vue({#}
+{#            el: '#container',#}
+{#            data: {#}
+{#                subjects: []#}
+{#            },#}
+{#            created: function () {#}
+{#                fetch('/api/subjects/').then(resp => resp.json()).then(json =>{#}
+{#                    this.subjects = json.subjects#}
+{#                })#}
+{#            }#}
+{#        })#}
+{#    </script>#}
 </body>
 </html>

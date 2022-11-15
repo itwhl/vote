@@ -51,7 +51,7 @@ def show_teachers(request: HttpRequest) -> HttpResponse:
                 'name': teacher.name,
                 'sex': teacher.sex,
                 'sno': teacher.sno,
-                'intro': teacher.intro
+                'intro': teacher.intro,
             })
     except(KeyError, ValueError, Teacher.DoesNotExist):
         pass
