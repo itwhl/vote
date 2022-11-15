@@ -60,25 +60,26 @@
             <div class="info">
                 <div>
                     <span><strong>姓名：{{ teacher.name }}</strong></span>
-                    <span>性别：{{ teacher.sex }}</span>
+                    <span>性别：{{ teacher.sex | maleOrFemale }}</span>
                 </div>
                 <div class="intro">
                     {{ teacher.intro }}
                 </div>
                 <div class="comment">
-                    <a href="">好评</a>&nbsp;&nbsp;(<strong>{{ subject.good_count }}</strong>)
+                    <a href="" @click.prevent="vote(teacher, ture)">好评</a>&nbsp;&nbsp;(<strong>{{ subject.good_count }}</strong>)
                     &nbsp;&nbsp;&nbsp;&nbsp;
-                    <a href="">差评</a>&nbsp;&nbsp;(<strong>{{ subject.bad_count }}</strong>)
+                    <a href="" @click.prevent="ote(teacher, false)">差评</a>&nbsp;&nbsp;(<strong>{{ subject.bad_count }}</strong>)
                 </div>
             </div>
         </div>
+        <a href="/static/html/subjects.html">返回首页</a>
     </div>
     <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.min.js"></script>
     <script>
         let app = new Vue({
             el: '#container',
             data: {
-                subjects: {},
+                subject: {},
                 teachers: [],
                 loaded: false
             },
@@ -91,7 +92,8 @@
                 vote(teacher, flag){
                     let url = flag? '/praise/' : '/criticize/'
                     url += '?tno' + teacher.no
-                    fetch(url).then(resp => resp.json()).then(json =>{
+                    fetch(url).then(resp => resp.json())
+                        .then(json =>{
                         if (json.code === 10000) {
                           if (flag) {
                               teacher.good_count = json.count
@@ -104,10 +106,12 @@
                     })
                 }
             },
-            created: function () {
-                fetch('/api/teachers/' + location.search).then(resp => resp.json()).then(json =>{
+            created() {
+                fetch('/api/teachers/' + location.search)
+                    .then(resp => resp.json())
+                    .then(json => {
                     this.loaded = true
-                    this.subjects = json.subjects
+                    this.subject = json.subject
                     this.teachers = json.teachers
                 })
             }
