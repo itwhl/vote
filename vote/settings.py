@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # 'debug_toolbar',  # 开发测试性能
+    'rest_framework',  # DRF模型
     'polls',
 ]
 

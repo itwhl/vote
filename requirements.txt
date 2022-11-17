@@ -6,6 +6,7 @@ Deprecated==1.2.13
 Django==3.2.16
 django-debug-toolbar==3.7.0
 django-redis==5.2.0
+djangorestframework==3.14.0
 idna==3.4
 importlib-metadata==5.0.0
 packaging==21.3

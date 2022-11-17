@@ -12,6 +12,7 @@ from django.shortcuts import render, redirect
 
 from polls.captcha import Captcha
 from polls.models import Teacher, Subject, User
+from polls.serializers import SubjectSerializer, TeacherSerializer, SubjectSimpleSerializer
 from polls.utils import to_md5_hex, random_captcha_code, send_message_by_sms, random_mobile_code, check_username, check_password, check_tel
 
 
@@ -23,40 +24,18 @@ def show_index(request):
 def show_subjects(request: HttpRequest) -> HttpResponse:
     # 显示学科
     queryset = Subject.objects.all()
-    subjects = []
-    for subject in queryset:
-        subjects.append( {
-            'no': subject.no,
-            'name': subject.name,
-            'intro': subject.intro,
-            'is_hot': subject.is_hot
-        })
-    return JsonResponse({'subjects': subjects})
+    seri = SubjectSerializer(queryset, many=True)
+    return JsonResponse({'subjects': seri.data})
 
 
 def show_teachers(request: HttpRequest) -> HttpResponse:
     # 获取指定学科老师数据
-    subject_dict, teachers_list = {}, []
-    try:
-        sno = int(request.GET['sno'])  # 通过request对象的GET属性可以获取来自于URL的参数（是个字典）
-        subject = Subject.objects.only('name').get(no=sno)
-        subject_dict = {
-            'no': subject.no,
-            'name': subject.name
-        }
-        queryset = Teacher.objects.filter(subject__no=sno).defer('subject')
-        for teacher in queryset:
-            teachers_list.append({
-                'no': teacher.no,
-                'name': teacher.name,
-                'sex': teacher.sex,
-                'intro': teacher.intro,
-                'good_count': teacher.good_count,
-                'bad_count': teacher.bad_count,
-            })
-    except(KeyError, ValueError, Teacher.DoesNotExist):
-        pass
-    return JsonResponse({'subject': subject_dict, 'teachers': teachers_list})
+    sno = int(request.GET['sno'])  # 通过request对象的GET属性可以获取来自于URL的参数（是个字典）
+    subject = Subject.objects.only('name').get(no=sno)
+    sub_seri = SubjectSimpleSerializer(subject)
+    queryset = Teacher.objects.filter(subject__no=sno).defer('subject')
+    tea_seri = TeacherSerializer(queryset, many=True)
+    return JsonResponse({'subject': sub_seri.data, 'teachers': tea_seri.data})
 
 
 def praise_or_criticize(request: HttpRequest) -> HttpResponse:
