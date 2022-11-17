@@ -1,14 +1,20 @@
 import io
+import json
 import re
 from urllib.parse import quote
 
 import xlwt
 import redis
-from django.core.cache import cache
+from django.core.cache import cache, caches
 from django.db import DatabaseError
 from django.db.models import Q
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
+from django.views.decorators.cache import cache_page
+from rest_framework.decorators import api_view
+from rest_framework.generics import ListAPIView
+from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from polls.captcha import Captcha
 from polls.models import Teacher, Subject, User
@@ -21,13 +27,45 @@ def show_index(request):
     return redirect('/static/html/subjects.html')
 
 
+# # CBV方式定制数据接口(ListAPIView支持查询列表)
+# class HostSubjectView(ListAPIView):
+#     queryset = Subject.objects.filter(is_hot=True)
+#     serializer_class = SubjectSerializer
+#
+#
+# # CBV方式定制数据接口(ModelViewSet支持增删改查,ReadOnlyModelViewSet只支持查询)
+# class SubjectViewSet(ModelViewSet):
+#     queryset = Subject.objects.all()  # 如何取数据
+#     serializer_class = SubjectSerializer  # 如何序列化数据
+
+# #   FBV方式定制数据接口(添加编程式缓存)
+# @api_view(('GET', ))  # 通过装饰器限制请求方法
+# # @cache_page(timeout=3600, cache='api')  # 通过装饰器设置声明式缓存
+# def show_subjects(request: HttpRequest) -> HttpResponse:
+#     # 获取学科数据
+#     data = caches['api'].get('vote:polls:subject')
+#     if data:
+#         data = json.loads(data)  # json.loads为反序列化,json格式转换字典格式,json.dumps为序列化,字典格式转换json格式
+#     else:
+#         queryset = Subject.objects.all()
+#         data = SubjectSerializer(queryset, many=True).data  # many=True多个对象
+#         caches['api'].set('vote:polls:subject', json.dumps(data), timeout=3600)
+#     # 通过DRF定制的Response来返回JSON格式的数据
+#     return Response(data)  # data装在列表（多个对象）或者字典里
+
+
+# FBV方式定制数据接口
+@api_view(('GET', ))  # 通过装饰器限制请求方法
+# @cache_page(timeout=3600, cache='api')  # 通过装饰器设置声明式缓存
 def show_subjects(request: HttpRequest) -> HttpResponse:
-    # 显示学科
+    # 获取学科数据
     queryset = Subject.objects.all()
-    seri = SubjectSerializer(queryset, many=True)
-    return JsonResponse({'subjects': seri.data})
+    seri = SubjectSerializer(queryset, many=True)  # many=True多个对象
+    # 通过DRF定制的Response来返回JSON格式的数据
+    return Response({'subjects': seri.data})  # data装在列表（多个对象）或者字典里
 
 
+@api_view(('GET', ))
 def show_teachers(request: HttpRequest) -> HttpResponse:
     # 获取指定学科老师数据
     sno = int(request.GET['sno'])  # 通过request对象的GET属性可以获取来自于URL的参数（是个字典）
@@ -35,7 +73,7 @@ def show_teachers(request: HttpRequest) -> HttpResponse:
     sub_seri = SubjectSimpleSerializer(subject)
     queryset = Teacher.objects.filter(subject__no=sno).defer('subject')
     tea_seri = TeacherSerializer(queryset, many=True)
-    return JsonResponse({'subject': sub_seri.data, 'teachers': tea_seri.data})
+    return Response({'subject': sub_seri.data, 'teachers': tea_seri.data})
 
 
 def praise_or_criticize(request: HttpRequest) -> HttpResponse:
@@ -43,7 +81,7 @@ def praise_or_criticize(request: HttpRequest) -> HttpResponse:
     if request.session.get('userid'):
         try:
             tno = int(request.GET['tno'])  # 此方法会报KeyError,ValueError异常
-            # tno = request.GET.get('tno', '0')  # 此方法比较常用，一般不会报KeyError,ValueError异常
+            # tno = request.GET.get('tno', '0')  # 不会报KeyError,ValueError异常
             teacher = Teacher.objects.get(no=tno)
             if request.phan.startswith('/praise'):
                 teacher.good_count += 1

@@ -15,13 +15,16 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from rest_framework.routers import DefaultRouter
 
-from polls.views import show_subjects, show_teachers, praise_or_criticize, login, register, logout, send_mobile_code, \
+from polls.views import  show_subjects, show_teachers, praise_or_criticize, login, register, logout, send_mobile_code, \
     get_stat_date, export_excel, show_index
 
 urlpatterns = [
     path('', show_index),
     path('admin/', admin.site.urls),
+    # 通过视图类的as_view()类方法获得对应的函数
+    # path('api/hostsubs', HostSubjectView.as_view()),
     path('api/subjects/', show_subjects),
     path('api/teachers/', show_teachers),
     path('parise/', praise_or_criticize),
@@ -33,6 +36,12 @@ urlpatterns = [
     path('data/', get_stat_date),
     path('export', export_excel),
 ]
+
+# # CBV方式定制接口注册路由(注册url和对应的处理请求的方法)
+# router = DefaultRouter()
+# router.register('subjects', SubjectViewSet)
+# # 并将注册好的URL添加到urlpatterns中
+# urlpatterns += router.urls
 
 # # 开发测试性能
 # if settings.DEBUG:

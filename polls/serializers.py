@@ -4,6 +4,7 @@ from rest_framework.serializers import ModelSerializer
 from polls.models import Subject, Teacher
 
 
+# 自定义序列化器
 class SubjectSerializer(ModelSerializer):
 
     class Meta:

@@ -142,13 +142,13 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),]
 
-# 接入redis缓存服务
+# # 接入redis缓存服务(调用缓存方法有两个,cache[]为默认缓存caches[]可以选择其他缓存)
 # CACHES = {
 #     'default': {
 #         'BACKEND': 'django_redis.cache.RedisCache',
 #         # 服务器的地址
 #         'LOCATION': [
-#             'redis://rm-bp172xk000fzkol57to.mysql.rds.aliyuncs.com/0',
+#             'redis:redis//47.104.31.138.5489/0',
 #         ],
 #         # 缓存中键的前缀(解决命名冲突的问题)
 #         'KEY_PREFIX': 'vote',
@@ -159,41 +159,59 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),]
 #             'CONNECTION_POOL_KWARGS': {
 #                 'max_connections': 512,
 #             },
-#             'PASSWORD':'Ab123456-',
+#             'PASSWORD':'Luohao.618',
+#         }
+#     },
+#     'api': {
+#         'BACKEND': 'django_redis.cache.RedisCache',
+#         # 服务器的地址
+#         'LOCATION': [
+#             'redis:redis//47.104.31.138.5489/1',
+#         ],
+#         # 缓存中键的前缀(解决命名冲突的问题)
+#         'KEY_PREFIX': 'vote:api',
+#         # 缓存服务的配置参数
+#         'OPTIONS': {
+#             'CLIENT_CLASS':'django.redis.client.DefaultClient',
+#             # 配置连接池(减少频繁的创建和释放Redis连接造成的网络开销)
+#             'CONNECTION_POOL_KWARGS': {
+#                 'max_connections': 512,
+#             },
+#             'PASSWORD':'Luohao.618',
 #         }
 #     },
 # }
 
-# 使用缓存保存用户跟踪的session对象
-SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
-# 指定使用那一组缓存服务来保存session对象
-SESSION_CACHE_ALIAS = 'default'
-# 指定session对象的过期时间(Redis键过期时间)
-SESSION_COOKIE_AGE = 1209600
-# 关闭浏览器窗口session自动过期(cookie自动消失)
-# SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+# # 使用缓存保存用户跟踪的session对象
+# SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+# # 指定使用那一组缓存服务来保存session对象
+# SESSION_CACHE_ALIAS = 'default'
+# # 指定session对象的过期时间(Redis键过期时间)
+# SESSION_COOKIE_AGE = 1209600
+# # 关闭浏览器窗口session自动过期(cookie自动消失)
+# # SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 
-# # 日志级别：DEBUG < INFO < WARNING < ERROR < CRITICAL 日志级别越低，日志输出越详细
-# # 可以通过官方文档搜索logging查看日志配置
-# LOGGING = {
-#     'version': 1,
-#     'disable_existing_loggers': False,
-#     # 日志处理器
-#     'handlers': {
-#         # 配置通过控制台输出日志（StreamHandler）
-#         'console': {
-#             'class': 'logging.StreamHandler',
-#         },
-#     },
-#     # 日志记录器,django.db为查看数据库日志
-#     'loggers': {
-#         'django.db': {
-#             'handlers': ['console'],
-#             'level': 'DEBUG',
-#         },
-#     },
-# }
+# 日志级别：DEBUG < INFO < WARNING < ERROR < CRITICAL 日志级别越低，日志输出越详细
+# 可以通过官方文档搜索logging查看日志配置
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    # 日志处理器
+    'handlers': {
+        # 配置通过控制台输出日志（StreamHandler）
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    # 日志记录器,django.db为查看数据库日志
+    'loggers': {
+        'django.db': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+    },
+}
 
 
 # 自定义的路径名
