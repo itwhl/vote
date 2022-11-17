@@ -2,7 +2,6 @@ import io
 import json
 import re
 from urllib.parse import quote
-
 import xlwt
 import redis
 from django.core.cache import cache, caches
@@ -10,12 +9,13 @@ from django.db import DatabaseError
 from django.db.models import Q
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
+from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+from django_redis import get_redis_connection
 from rest_framework.decorators import api_view
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-
 from polls.captcha import Captcha
 from polls.models import Teacher, Subject, User
 from polls.serializers import SubjectSerializer, TeacherSerializer, SubjectSimpleSerializer
@@ -27,29 +27,34 @@ def show_index(request):
     return redirect('/static/html/subjects.html')
 
 
-# # CBV方式定制数据接口(ListAPIView支持查询列表)
+# CBV方式定制数据接口(ListAPIView支持查询列表)
 # class HostSubjectView(ListAPIView):
 #     queryset = Subject.objects.filter(is_hot=True)
 #     serializer_class = SubjectSerializer
-#
-#
-# # CBV方式定制数据接口(ModelViewSet支持增删改查,ReadOnlyModelViewSet只支持查询)
-# class SubjectViewSet(ModelViewSet):
-#     queryset = Subject.objects.all()  # 如何取数据
-#     serializer_class = SubjectSerializer  # 如何序列化数据
+
+
+# CBV方式定制数据接口(ModelViewSet支持增删改查,ReadOnlyModelViewSet只支持查询)
+@method_decorator(decorator=cache_page(timeout=3600, cache='api', name='list'))  # # 通过Django框架提供的method_decorator装饰器对类实现声明式缓存
+@method_decorator(decorator=cache_page(timeout=3600, cache='api', name='retrie'))
+class SubjectViewSet(ModelViewSet):
+    queryset = Subject.objects.all()  # 如何取数据
+    serializer_class = SubjectSerializer  # 如何序列化数据
 
 # #   FBV方式定制数据接口(添加编程式缓存)
 # @api_view(('GET', ))  # 通过装饰器限制请求方法
 # # @cache_page(timeout=3600, cache='api')  # 通过装饰器设置声明式缓存
 # def show_subjects(request: HttpRequest) -> HttpResponse:
 #     # 获取学科数据
-#     data = caches['api'].get('vote:polls:subject')
+#     # 通过Django-Redis封装的get_redis_connection函数直接获得Redis对象,可以使用Redis所有命令操作缓存
+#     # 提醒:在实际的商业项目中,必须对Redis操作进行二次封装,以避免程序员发出危险操作(如flushall/flushdb)
+#     redis_cli = get_redis_connection(alias='api')
+#     data = redis_cli.get('vote:polls:subject')
 #     if data:
 #         data = json.loads(data)  # json.loads为反序列化,json格式转换字典格式,json.dumps为序列化,字典格式转换json格式
 #     else:
 #         queryset = Subject.objects.all()
 #         data = SubjectSerializer(queryset, many=True).data  # many=True多个对象
-#         caches['api'].set('vote:polls:subject', json.dumps(data), timeout=3600)
+#         redis_cli.set('vote:polls:subject', json.dumps(data), ex=3600)
 #     # 通过DRF定制的Response来返回JSON格式的数据
 #     return Response(data)  # data装在列表（多个对象）或者字典里
 
@@ -65,6 +70,7 @@ def show_subjects(request: HttpRequest) -> HttpResponse:
     return Response({'subjects': seri.data})  # data装在列表（多个对象）或者字典里
 
 
+# FBV方式定制数据接口
 @api_view(('GET', ))
 def show_teachers(request: HttpRequest) -> HttpResponse:
     # 获取指定学科老师数据
