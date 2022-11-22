@@ -44,22 +44,24 @@
     <div id="container">
         <h1>用户登录</h1>
         <hr>
-        <form action="" method="post">
+        <form action="" method="post" @submit.prevent="login()">
             <fieldset>
                 <legend>用户信息</legend>
                 <div class="input">
                     <label>用户名：</label>
-                    <input type="text" name="username">
+                    <input type="text" v-model.trim="username">
                 </div>
                 <div class="input">
                     <label>密码：</label>
-                    <input type="password" name="password">
+                    <input type="password" v-model.trim="password">
                 </div>
+                <!--
                 <div class="input">
                     <label>验证码：</label>
                     <input type="text" name="captcha">
                     <img src="/captcha/" alt="" width="150" height="40">
                 </div>
+                -->
             </fieldset>
             <div class="button">
                 <input type="submit" value="登录">
@@ -71,5 +73,39 @@
             <a href="register.html">注册新用户</a>
         </div>
     </div>
+    <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.min.js"></script>
+    <script>
+        let app = new Aue({
+            el:'#container',
+            data: {
+                hint: '',
+                username: '',
+                password: ''
+            },
+            methods:{
+                login(){
+                    data = {
+                        'username': this.username,
+                        'password': this.password
+                    }
+                    fetch('/login/', {
+                        method: 'POST',
+                        headers: {
+                            'content-type' : 'application/json'
+                        }
+                        body: JSON.stringify(data)
+                    }).then(resp => resp.json()).then(json => {
+                        if (json.code === 20000) {
+                            localStorage.token = json.token
+                            localStorage.username = json.username
+                            location.href = '/static/html/subjects.html/'
+                        } else {
+                            this.hint = json.message
+                        }
+                    })
+                }
+            }
+        })
+    </script>
 </body>
 </html>

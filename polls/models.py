@@ -40,11 +40,14 @@ class Teacher(models.Model):
 
 
 class User(models.Model):
+    no = models.AutoField(primary_key=True, db_column='id', verbose_name='编号')
     username = models.CharField(unique=True, max_length=20)
     password = models.CharField(max_length=32)
-    tel = models.CharField(max_length=20)
-    reg_date = models.DateTimeField()
+    tel = models.CharField(max_length=20, unique=True)
+    photo = models.CharField(max_length=1024, default='', verbose_name='用户头像')
+    reg_date = models.DateTimeField(auto_now_add=True, verbose_name='注册时间')
+    is_locked = models.BooleanField(default=False, verbose_name='是否禁用')
+    counter = models.IntegerField(default=5, verbose_name='剩余票数')
 
     class Meta:
-        managed = False
         db_table = 'tb_user'

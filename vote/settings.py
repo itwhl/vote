@@ -23,9 +23,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'akjf49ryh+4+=9r&0ve@g$@ngs#q5&swesd77wi%xn(pq#sm%m'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -39,8 +39,25 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # 'debug_toolbar',  # 开发测试性能
     'rest_framework',  # DRF模型
+    # 'rest_framework_swagger',  # 自动添加swagger接口文档
+    # 'django_celery_results', # 执行迁移会在数据库生成一张表
     'polls',
 ]
+
+# 接口的访问限流策略
+REST_FRAMEWORK = {
+    # 添加接口文档的配置
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+    # 配置限流类
+    'DEFAULT_THROTTLE_CLASSES': (
+        'rest_framework.throttling.AnonRateThrottle',
+    ),
+    # 限流的速率
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '3/min',
+    }
+}
+
 
 MIDDLEWARE = [
     # 'debug_toolbar.middleware.DebugToolbarMiddleware',  # 开发测试性能
@@ -141,6 +158,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),]
+STATIC_ROOT = '/root/project/static'
 
 # # 接入redis缓存服务(调用缓存方法有两个,cache[]为默认缓存caches[]可以选择其他缓存)
 # CACHES = {
@@ -221,3 +239,26 @@ LOGIN_REDIRECT_URLS = {
     '/data/',
     '/export/',
 }
+
+
+# # 保持HTTPS连接时间
+# SECURE_HSTS_SECONDS = 3600
+# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+# SECURE_HSTS_PRELOAD = True
+
+# # 自动重定向到安全连接
+# SECURE_SSL_REDIRECT = True
+
+# 避免浏览器自作聪明推断内容类型
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# 避免跨站脚本攻击
+SECURE_BROWSER_XSS_FILTER = True
+
+# # COOKIE只能通过HTTPS进行传输
+# SESSION_COOKIE_SECURE = True
+# CSRF_COOKIE_SECURE = True
+
+# 防止点击劫持攻击手段 - 修改HTTP协议响应头
+# 当前网站是不被允许使用<iframe>标签进行加载的
+X_FRAME_OPTIONS = 'DENY'
